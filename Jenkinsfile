@@ -4,12 +4,27 @@ pipeline {
     environment {
         DOCKER_HUB_REPO = 'abisheak469/python'
         IMAGE_TAG = "${BUILD_NUMBER}"
+        SONAR_SCANNER = 'SonarScanner' // Must match name in Global Tool Configuration
     }
 
     stages {
         stage('Checkout Code') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') { // Must match name in Configure System
+                    sh """
+                        ${tool "${SONAR_SCANNER}"}/bin/sonar-scanner \
+                        -Dsonar.projectKey=flask-app \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.login=$SONAR_AUTH_TOKEN
+                    """
+                }
             }
         }
 
